@@ -134,65 +134,54 @@ pipeline {
         /* ================================
            Stage 11: Prediction Smoke Test (FastAPI)
         ================================= */
-   
+  
 
-stage("Prediction Test") {
+  stage("Prediction Test") {
     steps {
         sh '''
         set -e
-
         . $VENV_NAME/bin/activate
         export PYTHONPATH=$(pwd)
 
         echo "Starting FastAPI..."
-
-        # START UVICORN FIRST
-        nohup uvicorn main:app \
-            --host 0.0.0.0 \
-            --port 7000 \
-            > uvicorn.log 2>&1 &
-
+        nohup uvicorn main:app --host 0.0.0.0 --port 8005 > uvicorn.log 2>&1 &
         API_PID=$!
         echo "FastAPI PID: $API_PID"
         trap "kill $API_PID 2>/dev/null || true" EXIT
 
-        # Give uvicorn time to bind the port
-        sleep 3
-
-        # WAIT LOOP
+        # Wait loop (up to 30s)
         for i in {1..30}; do
-            if curl -s http://localhost:7000/health > /dev/null; then
+            if curl -s http://localhost:8005/health | grep -q "ok"; then
                 echo "✅ FastAPI is running"
                 break
             fi
-            echo "Waiting for FastAPI..."
+            echo "Waiting for FastAPI... ($i/30)"
             sleep 1
         done
 
-        # FINAL CHECK
-        if ! curl -s http://localhost:7000/health > /dev/null; then
+        # Fail if still not ready
+        if ! curl -s http://localhost:8005/health | grep -q "ok"; then
             echo "❌ FastAPI failed to start"
-            echo "===== uvicorn.log ====="
             cat uvicorn.log
             exit 1
         fi
 
-        # PREDICTION TEST
-        RESPONSE=$(curl -s -X POST http://localhost:7000/predict \
-          -H "Content-Type: application/json" \
-          -d '{
-            "Gender": "Male",
-            "Married": "Yes",
-            "Dependents": "0",
-            "Education": "Graduate",
-            "Self_Employed": "No",
-            "ApplicantIncome": 5000,
-            "CoapplicantIncome": 2000,
-            "LoanAmount": 150,
-            "Loan_Amount_Term": 360,
-            "Credit_History": 1,
-            "Property_Area": "Urban"
-          }')
+        # Prediction test
+        RESPONSE=$(curl -s -X POST http://localhost:8005/predict \
+            -H "Content-Type: application/json" \
+            -d '{
+                "Gender": "Male",
+                "Married": "Yes",
+                "Dependents": "0",
+                "Education": "Graduate",
+                "Self_Employed": "No",
+                "ApplicantIncome": 5000,
+                "CoapplicantIncome": 2000,
+                "LoanAmount": 150,
+                "Loan_Amount_Term": 360,
+                "Credit_History": 1,
+                "Property_Area": "Urban"
+            }')
 
         echo "API Response: $RESPONSE"
 
@@ -201,9 +190,7 @@ stage("Prediction Test") {
             exit 1
         fi
         '''
-    }
 }
-
 
 
 
@@ -256,49 +243,40 @@ stage("Prediction Test") {
         /* ================================
            Stage 13: FastAPI Docker Test
         ================================= */
-        stage("FastAPI Docker Test") {
-            steps {
-                sh '''
-                set -e
+    stage("FastAPI Docker Test") {
+    steps {
+        sh '''
+        set -e
+        HOST_PORT=$(cat .docker_host_port)
+        CONTAINER_ID=$(cat .docker_container_id)
 
-                # Read saved host port and container ID
-                HOST_PORT=$(cat .docker_host_port)
-                CONTAINER_ID=$(cat .docker_container_id)
+        # Wait for container health
+        for i in {1..30}; do
+            curl -sSf http://localhost:$HOST_PORT/health && break
+            echo "Waiting for Docker FastAPI..."
+            sleep 1
+        done
 
-                # Wait for the API to be ready
-                for i in {1..20}; do
-                    curl -sSf http://localhost:$HOST_PORT/health && break
-                    echo "Waiting for Docker FastAPI to start..."
-                    sleep 1
-                done
+        RESPONSE=$(curl -s -X POST http://localhost:$HOST_PORT/predict \
+            -H "Content-Type: application/json" \
+            -d '{
+                "Gender": "Male",
+                "Married": "Yes",
+                "Dependents": "0",
+                "Education": "Graduate",
+                "Self_Employed": "No",
+                "ApplicantIncome": 5000,
+                "CoapplicantIncome": 2000,
+                "LoanAmount": 150,
+                "Loan_Amount_Term": 360,
+                "Credit_History": 1,
+                "Property_Area": "Urban"
+            }')
 
-                # Test prediction endpoint
-                RESPONSE=$(curl -s -X POST http://localhost:$HOST_PORT/predict \
-                    -H "Content-Type: application/json" \
-                    -d '{
-                        "Gender": "Male",
-                        "Married": "Yes",
-                        "Dependents": "0",
-                        "Education": "Graduate",
-                        "Self_Employed": "No",
-                        "ApplicantIncome": 5000,
-                        "CoapplicantIncome": 2000,
-                        "LoanAmount": 150,
-                        "Loan_Amount_Term": 360,
-                        "Credit_History": 1,
-                        "Property_Area": "Urban"
-                    }')
-                echo "Docker API Response: $RESPONSE"
+        echo "Docker API Response: $RESPONSE"
+        '''
+}
 
-                # Stop and remove container
-                #docker stop $CONTAINER_ID
-                #docker rm $CONTAINER_ID
-
-                # Cleanup temporary files
-                #rm -f .docker_host_port .docker_container_id
-                '''
-            }
-        }
 
         /* ================================
            Stage 14: Archive Artifacts
