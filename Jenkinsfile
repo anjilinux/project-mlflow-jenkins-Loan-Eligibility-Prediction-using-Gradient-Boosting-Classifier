@@ -189,13 +189,6 @@ curl -s -X POST http://localhost:7000/predict \
 
 
 
-        /* ================================
-           Stage 11: Docker Build & Test
-                ================================= */
-   
-       /* ================================
-   Stage 11: Docker Build & Test
-================================= */
 /* ================================
    Stage 11: Docker Build & Run
 ================================= */
@@ -270,13 +263,6 @@ stage("FastAPI API Test") {
 
 
 
-
-         //  #        docker stop $CONTAINER_ID
-        //    # docker rm $CONTAINER_ID
-
-        /* ================================
-           Stage 12: Archive Artifacts
-        ================================= */
         stage("Archive Artifacts") {
             steps {
                 archiveArtifacts artifacts: '*.pkl', fingerprint: true
