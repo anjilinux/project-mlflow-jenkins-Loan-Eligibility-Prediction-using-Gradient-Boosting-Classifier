@@ -190,8 +190,8 @@ pipeline {
             exit 1
         fi
         '''
+   }
 }
-
 
 
 
@@ -275,7 +275,9 @@ pipeline {
 
         echo "Docker API Response: $RESPONSE"
         '''
-}
+   }  
+
+ }
 
 
         /* ================================
@@ -288,6 +290,8 @@ pipeline {
         }
     }
 
+
+
     post {
         success {
             echo "✅ Loan Eligibility MLOps Pipeline Completed Successfully"
@@ -298,7 +302,6 @@ pipeline {
     }
 }
 
- }
-
-
  
+
+
