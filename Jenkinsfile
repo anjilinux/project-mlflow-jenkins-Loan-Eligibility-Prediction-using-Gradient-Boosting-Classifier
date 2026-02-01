@@ -243,20 +243,35 @@ pipeline {
         /* ================================
            Stage 13: FastAPI Docker Test
         ================================= */
-    stage("FastAPI Docker Test") {
+
+stage("FastAPI Docker Test") {
     steps {
         sh '''
         set -e
+
         HOST_PORT=$(cat .docker_host_port)
         CONTAINER_ID=$(cat .docker_container_id)
 
-        # Wait for container health
+        echo "Waiting for Docker FastAPI to be ready..."
+
+        # Wait up to 30 seconds for /health
         for i in {1..30}; do
-            curl -sSf http://localhost:$HOST_PORT/health && break
-            echo "Waiting for Docker FastAPI..."
+            if curl -s http://localhost:$HOST_PORT/health | grep -q "ok"; then
+                echo "✅ Docker FastAPI is running"
+                break
+            fi
+            echo "⏳ Waiting for FastAPI ($i/30)"
             sleep 1
         done
 
+        # Fail if still not ready
+        if ! curl -s http://localhost:$HOST_PORT/health | grep -q "ok"; then
+            echo "❌ FastAPI Docker failed to start"
+            docker logs $CONTAINER_ID
+            exit 1
+        fi
+
+        # Prediction test
         RESPONSE=$(curl -s -X POST http://localhost:$HOST_PORT/predict \
             -H "Content-Type: application/json" \
             -d '{
@@ -274,10 +289,21 @@ pipeline {
             }')
 
         echo "Docker API Response: $RESPONSE"
-        '''
-   }  
 
- }
+        if [ -z "$RESPONSE" ]; then
+            echo "❌ Empty API response"
+            docker logs $CONTAINER_ID
+            exit 1
+        fi
+
+        # Cleanup
+        docker stop $CONTAINER_ID
+        docker rm $CONTAINER_ID
+        rm -f .docker_host_port .docker_container_id
+        '''
+    }
+}
+
 
 
         /* ================================
