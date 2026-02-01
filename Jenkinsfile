@@ -5,7 +5,6 @@ pipeline {
         VENV_NAME = "venv"
         MLFLOW_TRACKING_URI = "http://localhost:5555"
         MLFLOW_EXPERIMENT_NAME = "Loan_Eligibility_GBC"
-        API_PORT = "7000"
     }
 
     stages {
@@ -21,14 +20,14 @@ pipeline {
         }
 
         /* ================================
-           Stage 2: Virtual Environment
+           Stage 2: Setup Virtual Environment
         ================================= */
         stage("Setup Virtual Environment") {
             steps {
                 sh '''
                 python3 -m venv $VENV_NAME
                 . $VENV_NAME/bin/activate
-
+                pip install --upgrade pip
                 pip install -r requirements.txt
                 '''
             }
@@ -94,186 +93,176 @@ pipeline {
             }
         }
 
-
-      /* ================================
-           Stage 88: Pytest
+        /* ================================
+           Stage 8: Pytest - Data
         ================================= */
-stage("test_data") {
-    steps {
-        sh '''
-        . $VENV_NAME/bin/activate
-        export PYTHONPATH=$WORKSPACE
-        pytest
-        '''
-    }
-}
+        stage("Pytest - Data") {
+            steps {
+                sh '''
+                . $VENV_NAME/bin/activate
+                export PYTHONPATH=$(pwd)
+                pytest test_data.py
+                '''
+            }
+        }
 
         /* ================================
-           Stage 8: Pytest
+           Stage 9: Pytest - Model
         ================================= */
-stage("Model Testing") {
-    steps {
-        sh '''
-        . $VENV_NAME/bin/activate
-        export PYTHONPATH=$WORKSPACE
-        pytest
-        '''
-    }
-}
-
+        stage("Pytest - Model") {
+            steps {
+                sh '''
+                . $VENV_NAME/bin/activate
+                export PYTHONPATH=$(pwd)
+                pytest test_model.py
+                '''
+            }
+        }
 
         /* ================================
-           Stage 9: Prediction Smoke Test
+           Stage 10: Schema Test
+        ================================= */
+        stage("Schema Test") {
+            steps {
+                sh '''
+                . $VENV_NAME/bin/activate
+                pytest test_schema.py
+                '''
+            }
+        }
+
+        /* ================================
+           Stage 11: Prediction Smoke Test (FastAPI)
         ================================= */
         stage("Prediction Test") {
             steps {
                 sh '''
                 . $VENV_NAME/bin/activate
-                python predict.py
+
+                # Run FastAPI app in background
+                uvicorn main:app --host 0.0.0.0 --port 7000 &
+                API_PID=$!
+
+                # Wait for API health endpoint to be ready
+                for i in {1..20}; do
+                    curl -sSf http://localhost:7000/health && break
+                    echo "Waiting for FastAPI to start..."
+                    sleep 1
+                done
+
+                # Test prediction endpoint
+                RESPONSE=$(curl -s -X POST http://localhost:7000/predict \
+                    -H "Content-Type: application/json" \
+                    -d '{
+                        "Gender": "Male",
+                        "Married": "Yes",
+                        "Dependents": "0",
+                        "Education": "Graduate",
+                        "Self_Employed": "No",
+                        "ApplicantIncome": 5000,
+                        "CoapplicantIncome": 2000,
+                        "LoanAmount": 150,
+                        "Loan_Amount_Term": 360,
+                        "Credit_History": 1,
+                        "Property_Area": "Urban"
+                    }')
+                echo "API Response: $RESPONSE"
+
+                # Kill background process
+                kill $API_PID
+                wait $API_PID 2>/dev/null || true
                 '''
             }
         }
 
-
-        stage("FastAPI API Test") {
+        /* ================================
+           Stage 12: Docker Build & Run
+        ================================= */
+        stage("Docker Build & Run") {
             steps {
                 sh '''
                 set -e
-                . $VENV_NAME/bin/activate
 
-                # Start FastAPI in background
-                nohup uvicorn main:app --host 0.0.0.0 --port $API_PORT > api.log 2>&1 &
-                API_PID=$!
-                sleep 10
+                # Build Docker image
+                docker build -t loan-eligibility .
 
-                # Check health endpoint, ignore non-zero exit code
-                curl -sSf http://localhost:$API_PORT/health || true
+                # Remove old container if exists
+                docker rm -f loan-eligibility || true
 
-                # Call prediction endpoint
-curl -s -X POST http://localhost:7000/predict \
--H "Content-Type: application/json" \
--d '{
-    "Gender": "Male",
-    "Married": "Yes",
-    "Dependents": "0",
-    "Education": "Graduate",
-    "Self_Employed": "No",
-    "ApplicantIncome": 5000,
-    "CoapplicantIncome": 2000,
-    "LoanAmount": 150,
-    "Loan_Amount_Term": 360,
-    "Credit_History": 1,
-    "Property_Area": "Urban"
-}'
+                # Pick a random free host port between 8000-8999
+                HOST_PORT=$(shuf -i 8000-8999 -n 1)
+                echo "🚀 Running API on host port $HOST_PORT"
 
+                # Run container mapping host port to container port 8005
+                CONTAINER_ID=$(docker run -d -p $HOST_PORT:8005 --name loan-eligibility loan-eligibility)
 
-                echo "API Response: $RESPONSE"
-
-                # Stop API
-                kill -9 $API_PID || true
+                # Save HOST_PORT and CONTAINER_ID to temporary files for next stage
+                echo $HOST_PORT > .docker_host_port
+                echo $CONTAINER_ID > .docker_container_id
                 '''
             }
         }
 
-
-        stage("schema-test-"){
-            steps{
+        /* ================================
+           Stage 13: FastAPI Docker Test
+        ================================= */
+        stage("FastAPI Docker Test") {
+            steps {
                 sh '''
-                . $ENV_NAME/bin/activate
-                    python schema.py
+                set -e
+
+                # Read saved host port and container ID
+                HOST_PORT=$(cat .docker_host_port)
+                CONTAINER_ID=$(cat .docker_container_id)
+
+                # Wait for the API to be ready
+                for i in {1..20}; do
+                    curl -sSf http://localhost:$HOST_PORT/health && break
+                    echo "Waiting for Docker FastAPI to start..."
+                    sleep 1
+                done
+
+                # Test prediction endpoint
+                RESPONSE=$(curl -s -X POST http://localhost:$HOST_PORT/predict \
+                    -H "Content-Type: application/json" \
+                    -d '{
+                        "Gender": "Male",
+                        "Married": "Yes",
+                        "Dependents": "0",
+                        "Education": "Graduate",
+                        "Self_Employed": "No",
+                        "ApplicantIncome": 5000,
+                        "CoapplicantIncome": 2000,
+                        "LoanAmount": 150,
+                        "Loan_Amount_Term": 360,
+                        "Credit_History": 1,
+                        "Property_Area": "Urban"
+                    }')
+                echo "Docker API Response: $RESPONSE"
+
+                # Stop and remove container
+                docker stop $CONTAINER_ID
+                docker rm $CONTAINER_ID
+
+                # Cleanup temporary files
+                rm -f .docker_host_port .docker_container_id
                 '''
             }
         }
 
-
-
-
-
-/* ================================
-   Stage 11: Docker Build & Run
-================================= */
-stage("Docker Build & Run-1") {
-    steps {
-        sh '''
-        set -e
-
-        # Build Docker image
-        docker build -t loan-eligibility .
-
-        # Remove old container if exists
-        docker rm -f loan-eligibility || true
-
-        # Pick a random free host port between 8000-8999
-        HOST_PORT=$(shuf -i 8000-8999 -n 1)
-        echo "🚀 Running API on host port $HOST_PORT"
-
-        # Run container mapping random host port to container port 8005
-        CONTAINER_ID=$(docker run -d -p $HOST_PORT:8005 --name loan-eligibility loan-eligibility)
-
-        # Save HOST_PORT and CONTAINER_ID to temporary files for next stage
-        echo $HOST_PORT > .docker_host_port
-        echo $CONTAINER_ID > .docker_container_id
-        '''
-    }
-}
-
-/* ================================
-   Stage 12: FastAPI API Test
-================================= */
-stage("FastAPI API Test-1") {
-    steps {
-        sh '''
-        set -e
-
-        # Read saved host port and container ID
-        HOST_PORT=$(cat .docker_host_port)
-        CONTAINER_ID=$(cat .docker_container_id)
-
-        # Wait for the API to be ready
-        for i in {1..20}; do
-            curl -sSf http://localhost:$HOST_PORT/health && break
-            echo "Waiting for FastAPI to start..."
-            sleep 1
-        done
-
-        # Test prediction endpoint
-        RESPONSE=$(curl -s -X POST http://localhost:$HOST_PORT/predict \
-            -H "Content-Type: application/json" \
-            -d '{
-                "Gender": "Male",
-                "Married": "Yes",
-                "Dependents": "0",
-                "Education": "Graduate",
-                "Self_Employed": "No",
-                "ApplicantIncome": 5000,
-                "CoapplicantIncome": 2000,
-                "LoanAmount": 150,
-                "Loan_Amount_Term": 360,
-                "Credit_History": 1,
-                "Property_Area": "Urban"
-            }')
-        echo "API Response: $RESPONSE"
-
-        # Stop and remove container after test
-        docker stop $CONTAINER_ID
-        docker rm $CONTAINER_ID
-        '''
-    }
-}
-
-
-
+        /* ================================
+           Stage 14: Archive Artifacts
+        ================================= */
         stage("Archive Artifacts") {
             steps {
-                archiveArtifacts artifacts: '*.pkl', fingerprint: true
+                archiveArtifacts artifacts: 'artifacts/*.pkl', fingerprint: true
             }
         }
     }
-
 
     post {
         success {
-            echo "✅ Real Estate Price Prediction MLOps Pipeline Completed Successfully"
+            echo "✅ Loan Eligibility MLOps Pipeline Completed Successfully"
         }
         failure {
             echo "❌ Pipeline Failed – Check Logs"
