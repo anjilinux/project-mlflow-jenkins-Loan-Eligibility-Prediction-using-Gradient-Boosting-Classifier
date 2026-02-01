@@ -142,12 +142,11 @@ stage("Prediction Test") {
         set -e
 
         . $VENV_NAME/bin/activate
+        export PYTHONPATH=$(pwd)
 
-        echo "Working directory:"
-        pwd
-        ls -l
+        echo "Starting FastAPI..."
 
-        # Start FastAPI in background WITH logs
+        # START UVICORN FIRST
         nohup uvicorn main:app \
             --host 0.0.0.0 \
             --port 7000 \
@@ -157,7 +156,10 @@ stage("Prediction Test") {
         echo "FastAPI PID: $API_PID"
         trap "kill $API_PID 2>/dev/null || true" EXIT
 
-        # Wait for FastAPI
+        # Give uvicorn time to bind the port
+        sleep 3
+
+        # WAIT LOOP
         for i in {1..30}; do
             if curl -s http://localhost:7000/health > /dev/null; then
                 echo "✅ FastAPI is running"
@@ -167,15 +169,15 @@ stage("Prediction Test") {
             sleep 1
         done
 
-        # Final health check
-        if ! curl -s http://localhost:7000/health; then
+        # FINAL CHECK
+        if ! curl -s http://localhost:7000/health > /dev/null; then
             echo "❌ FastAPI failed to start"
             echo "===== uvicorn.log ====="
             cat uvicorn.log
             exit 1
         fi
 
-        # Prediction test
+        # PREDICTION TEST
         RESPONSE=$(curl -s -X POST http://localhost:7000/predict \
           -H "Content-Type: application/json" \
           -d '{
@@ -195,7 +197,7 @@ stage("Prediction Test") {
         echo "API Response: $RESPONSE"
 
         if [ -z "$RESPONSE" ]; then
-            echo "❌ Empty response from API"
+            echo "❌ Empty API response"
             exit 1
         fi
         '''
