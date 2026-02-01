@@ -1,7 +1,6 @@
 import joblib
 from sklearn.metrics import accuracy_score
-from src.data_preprocessing import preprocess_data
-
+from data_preprocessing import preprocess_data  # NO "src." if PYTHONPATH=src
 
 def test_model_accuracy():
     model = joblib.load("artifacts/model.pkl")
