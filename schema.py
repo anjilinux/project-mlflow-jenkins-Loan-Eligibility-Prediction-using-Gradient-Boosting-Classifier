@@ -1,14 +1,21 @@
-from pydantic import BaseModel
+# test_schema.py
+from schema import LoanInput
+import pytest
 
-class LoanInput(BaseModel):
-    Gender: str
-    Married: str
-    Dependents: str
-    Education: str
-    Self_Employed: str
-    ApplicantIncome: float
-    CoapplicantIncome: float
-    LoanAmount: float
-    Loan_Amount_Term: float
-    Credit_History: float
-    Property_Area: str
+def test_loan_input_schema():
+    data = {
+        "Gender": "Male",
+        "Married": "Yes",
+        "Dependents": "0",
+        "Education": "Graduate",
+        "Self_Employed": "No",
+        "ApplicantIncome": 5000,
+        "CoapplicantIncome": 2000,
+        "LoanAmount": 150,
+        "Loan_Amount_Term": 360,
+        "Credit_History": 1,
+        "Property_Area": "Urban"
+    }
+    loan = LoanInput(**data)
+    assert loan.Gender == "Male"
+    assert loan.LoanAmount == 150
