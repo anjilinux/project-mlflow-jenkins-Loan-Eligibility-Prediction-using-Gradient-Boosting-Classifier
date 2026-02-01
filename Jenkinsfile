@@ -119,17 +119,6 @@ pipeline {
             }
         }
 
-        /* ================================
-           Stage 10: Schema Test2
-        ================================= */
-        stage("Schema Test") {
-            steps {
-                sh '''
-                . $VENV_NAME/bin/activate
-                pytest schema.py
-                '''
-            }
-        }
 
 
         stage("Schema Test1") {
