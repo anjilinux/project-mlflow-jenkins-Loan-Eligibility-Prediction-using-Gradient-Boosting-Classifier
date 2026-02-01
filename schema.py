@@ -1,3 +1,4 @@
+# schema.py
 from pydantic import BaseModel, Field, confloat
 
 class LoanInput(BaseModel):
