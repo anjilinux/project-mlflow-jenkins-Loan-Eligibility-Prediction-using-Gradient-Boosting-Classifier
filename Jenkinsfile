@@ -98,26 +98,29 @@ pipeline {
       /* ================================
            Stage 88: Pytest
         ================================= */
-        stage("test_data") {
-            steps {
-                sh '''
-                . $VENV_NAME/bin/activate
-                pytest test_data.py
-                '''
-            }
-        }
+stage("test_data") {
+    steps {
+        sh '''
+        . $VENV_NAME/bin/activate
+        export PYTHONPATH=$WORKSPACE
+        pytest
+        '''
+    }
+}
 
         /* ================================
            Stage 8: Pytest
         ================================= */
-        stage("Model Testing") {
-            steps {
-                sh '''
-                . $VENV_NAME/bin/activate
-                pytest test_model.py
-                '''
-            }
-        }
+stage("Model Testing") {
+    steps {
+        sh '''
+        . $VENV_NAME/bin/activate
+        export PYTHONPATH=$WORKSPACE
+        pytest
+        '''
+    }
+}
+
 
         /* ================================
            Stage 9: Prediction Smoke Test
