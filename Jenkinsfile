@@ -196,6 +196,9 @@ curl -s -X POST http://localhost:7000/predict \
        /* ================================
    Stage 11: Docker Build & Test
 ================================= */
+/* ================================
+   Stage 11: Docker Build & Run
+================================= */
 stage("Docker Build & Run") {
     steps {
         sh '''
@@ -214,20 +217,36 @@ stage("Docker Build & Run") {
         # Run container mapping random host port to container port 8005
         CONTAINER_ID=$(docker run -d -p $HOST_PORT:8005 --name loan-eligibility loan-eligibility)
 
-        # Wait for the API to start
-        sleep 10
+        # Save HOST_PORT and CONTAINER_ID to temporary files for next stage
+        echo $HOST_PORT > .docker_host_port
+        echo $CONTAINER_ID > .docker_container_id
+        '''
+    }
+}
 
-        # Health check
-        curl -sf http://localhost:$HOST_PORT/health || {
-            echo "❌ API health check failed"
-            docker logs $CONTAINER_ID
-            exit 1
-        }
+/* ================================
+   Stage 12: FastAPI API Test
+================================= */
+stage("FastAPI API Test") {
+    steps {
+        sh '''
+        set -e
 
-        # Test prediction endpoint with all required fields
+        # Read saved host port and container ID
+        HOST_PORT=$(cat .docker_host_port)
+        CONTAINER_ID=$(cat .docker_container_id)
+
+        # Wait for the API to be ready
+        for i in {1..20}; do
+            curl -sSf http://localhost:$HOST_PORT/health && break
+            echo "Waiting for FastAPI to start..."
+            sleep 1
+        done
+
+        # Test prediction endpoint
         RESPONSE=$(curl -s -X POST http://localhost:$HOST_PORT/predict \
-        -H "Content-Type: application/json" \
-        -d '{
+            -H "Content-Type: application/json" \
+            -d '{
                 "Gender": "Male",
                 "Married": "Yes",
                 "Dependents": "0",
@@ -239,8 +258,7 @@ stage("Docker Build & Run") {
                 "Loan_Amount_Term": 360,
                 "Credit_History": 1,
                 "Property_Area": "Urban"
-            }') || true
-
+            }')
         echo "API Response: $RESPONSE"
 
         # Stop and remove container after test
@@ -249,8 +267,6 @@ stage("Docker Build & Run") {
         '''
     }
 }
-
-
 
 
 
