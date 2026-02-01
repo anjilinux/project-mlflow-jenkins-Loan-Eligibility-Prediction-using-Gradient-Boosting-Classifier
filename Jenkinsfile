@@ -126,7 +126,7 @@ pipeline {
             steps {
                 sh '''
                 . $VENV_NAME/bin/activate
-                pytest test_schema.py
+                pytest schema.py
                 '''
             }
         }
