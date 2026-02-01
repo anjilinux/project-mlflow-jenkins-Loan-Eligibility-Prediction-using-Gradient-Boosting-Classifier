@@ -1,6 +1,5 @@
-FROM python:3.12-slim
+FROM python:3.10-slim
 
-# 🔥 REQUIRED for scikit-learn
 RUN apt-get update && apt-get install -y \
     libgomp1 \
     && rm -rf /var/lib/apt/lists/*
@@ -16,4 +15,4 @@ COPY artifacts/ artifacts/
 
 EXPOSE 8005
 
-CMD ["python", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8005"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8005"]
