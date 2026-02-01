@@ -4,7 +4,7 @@ pipeline {
     environment {
         VENV_NAME = "venv"
         MLFLOW_TRACKING_URI = "http://localhost:5555"
-        MLFLOW_EXPERIMENT_NAME = "Loan Eligibility1"
+        MLFLOW_EXPERIMENT_NAME = "Loan_Eligibility_GBC"
         API_PORT = "7000"
     }
 
