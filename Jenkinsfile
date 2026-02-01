@@ -291,11 +291,11 @@ stage("Prediction Test") {
                 echo "Docker API Response: $RESPONSE"
 
                 # Stop and remove container
-                docker stop $CONTAINER_ID
-                docker rm $CONTAINER_ID
+                #docker stop $CONTAINER_ID
+                #docker rm $CONTAINER_ID
 
                 # Cleanup temporary files
-                rm -f .docker_host_port .docker_container_id
+                #rm -f .docker_host_port .docker_container_id
                 '''
             }
         }
