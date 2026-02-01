@@ -1,4 +1,3 @@
-# main.py
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
@@ -20,10 +19,11 @@ app.add_middleware(
 )
 
 # ================================
-# Load Pipeline
+# Load Pipeline (MODEL + PREPROCESSOR)
 # ================================
 BASE_DIR = Path(__file__).resolve().parent
 ARTIFACTS_DIR = BASE_DIR / "artifacts"
+
 PIPELINE_PATH = ARTIFACTS_DIR / "model.pkl"
 
 if not PIPELINE_PATH.exists():
@@ -45,4 +45,7 @@ def health():
 def predict(data: LoanInput):
     df = pd.DataFrame([data.dict()])
     pred = pipeline.predict(df)[0]
-    return {"loan_status": "Approved" if pred == 1 else "Rejected"}
+
+    return {
+        "loan_status": "Approved" if pred == 1 else "Rejected"
+    }
