@@ -134,46 +134,81 @@ pipeline {
         /* ================================
            Stage 11: Prediction Smoke Test (FastAPI)
         ================================= */
-        stage("Prediction Test") {
-            steps {
-                sh '''
-                . $VENV_NAME/bin/activate
+   
 
-                # Run FastAPI app in background
-                uvicorn main:app --host 0.0.0.0 --port 7000 &
-                API_PID=$!
 
-                # Wait for API health endpoint to be ready
-                for i in {1..20}; do
-                    curl -sSf http://localhost:7000/health && break
-                    echo "Waiting for FastAPI to start..."
-                    sleep 1
-                done
 
-                # Test prediction endpoint
-                RESPONSE=$(curl -s -X POST http://localhost:7000/predict \
-                    -H "Content-Type: application/json" \
-                    -d '{
-                        "Gender": "Male",
-                        "Married": "Yes",
-                        "Dependents": "0",
-                        "Education": "Graduate",
-                        "Self_Employed": "No",
-                        "ApplicantIncome": 5000,
-                        "CoapplicantIncome": 2000,
-                        "LoanAmount": 150,
-                        "Loan_Amount_Term": 360,
-                        "Credit_History": 1,
-                        "Property_Area": "Urban"
-                    }')
-                echo "API Response: $RESPONSE"
 
-                # Kill background process
-                kill $API_PID
-                wait $API_PID 2>/dev/null || true
-                '''
-            }
+stage("Prediction Test") {
+    steps {
+        sh '''
+        . $VENV_NAME/bin/activate
+
+        # Run FastAPI app in background
+        uvicorn main:app --host 0.0.0.0 --port 7000 &
+        API_PID=$!
+        trap "kill $API_PID 2>/dev/null || true" EXIT
+
+        # Wait for API health endpoint to be ready
+        for i in {1..30}; do
+            curl -sSf http://localhost:7000/health && break
+            echo "Waiting for FastAPI to start..."
+            sleep 1
+        done
+
+        # Check if API started
+        curl -sSf http://localhost:7000/health >/dev/null 2>&1 || {
+            echo "❌ FastAPI did not start in time"
+            exit 1
         }
+
+        # Test prediction endpoint
+        HTTP_STATUS=$(curl -s -o response.json -w "%{http_code}" -X POST http://localhost:7000/predict \
+            -H "Content-Type: application/json" \
+            -d '{
+                "Gender": "Male",
+                "Married": "Yes",
+                "Dependents": "0",
+                "Education": "Graduate",
+                "Self_Employed": "No",
+                "ApplicantIncome": 5000,
+                "CoapplicantIncome": 2000,
+                "LoanAmount": 150,
+                "Loan_Amount_Term": 360,
+                "Credit_History": 1,
+                "Property_Area": "Urban"
+            }')
+
+        if [ "$HTTP_STATUS" -ne 200 ]; then
+            echo "❌ Prediction failed with HTTP status $HTTP_STATUS"
+            cat response.json
+            exit 1
+        fi
+
+        echo "✅ API Response: $(cat response.json)"
+        '''
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
         /* ================================
            Stage 12: Docker Build & Run
