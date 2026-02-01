@@ -4,7 +4,7 @@ pipeline {
     environment {
         VENV_NAME = "venv"
         MLFLOW_TRACKING_URI = "http://localhost:5555"
-        MLFLOW_EXPERIMENT_NAME = "Real-Estate-Price"
+        MLFLOW_EXPERIMENT_NAME = "Loan Eligibility1"
         API_PORT = "7000"
     }
 
@@ -16,7 +16,7 @@ pipeline {
         stage("Checkout Code") {
             steps {
                 git branch: "master",
-                    url: "https://github.com/anjilinux/project-mlflow-Real-Estate-Price-Prediction-Model-with-NLP-FastAPI.git"
+                    url: "https://github.com/anjilinux/project-mlflow-jenkins-Loan-Eligibility-Prediction-using-Gradient-Boosting-Classifier.git"
             }
         }
 
@@ -53,7 +53,7 @@ pipeline {
             steps {
                 sh '''
                 . $VENV_NAME/bin/activate
-                python eda_feature_engineering.py
+                python feature_engineering.py
                 '''
             }
         }

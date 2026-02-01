@@ -5,8 +5,8 @@ from data_preprocessing import preprocess_data
 model = joblib.load("artifacts/model.pkl")
 
 _, X_test, _, y_test, _ = preprocess_data(
-    "data/raw/loan_data.csv",
-    "data/processed/clean_data.csv"
+    "loan_data.csv",
+    "clean_data.csv"
 )
 
 preds = model.predict(X_test)

@@ -11,8 +11,8 @@ from data_preprocessing import preprocess_data
 mlflow.set_experiment("Loan_Eligibility_GBC")
 
 X_train, X_test, y_train, y_test, preprocessor = preprocess_data(
-    "data/raw/loan_data.csv",
-    "data/processed/clean_data.csv"
+    "loan_data.csv",
+    "clean_data.csv"
 )
 
 model = GradientBoostingClassifier(
