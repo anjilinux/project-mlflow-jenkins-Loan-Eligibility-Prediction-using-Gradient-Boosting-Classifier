@@ -120,7 +120,7 @@ pipeline {
         }
 
         /* ================================
-           Stage 10: Schema Test
+           Stage 10: Schema Test2
         ================================= */
         stage("Schema Test") {
             steps {
@@ -132,7 +132,7 @@ pipeline {
         }
 
 
-        stage("Schema Test") {
+        stage("Schema Test1") {
     steps {
         sh '''
         . $VENV_NAME/bin/activate
