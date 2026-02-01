@@ -131,6 +131,17 @@ pipeline {
             }
         }
 
+
+        stage("Schema Test") {
+    steps {
+        sh '''
+        . $VENV_NAME/bin/activate
+        pytest test_schema.py
+        '''
+    }
+}
+
+
         /* ================================
            Stage 11: Prediction Smoke Test (FastAPI)
         ================================= */
