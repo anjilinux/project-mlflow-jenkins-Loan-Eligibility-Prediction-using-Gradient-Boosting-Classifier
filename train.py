@@ -23,8 +23,8 @@ model = GradientBoostingClassifier(
 )
 
 pipeline = Pipeline([
-    ('preprocessor', preprocessor),
-    ('model', model)
+    ("preprocessor", preprocessor),
+    ("model", model)
 ])
 
 with mlflow.start_run():
@@ -32,22 +32,25 @@ with mlflow.start_run():
 
     preds = pipeline.predict(X_test)
     acc = accuracy_score(y_test, preds)
-
-    mlflow.log_param("model", "GradientBoostingClassifier")
     mlflow.log_metric("accuracy", acc)
 
-    # ✅ Safe ROC AUC logging
     if y_test.nunique() > 1:
         roc = roc_auc_score(y_test, preds)
         mlflow.log_metric("roc_auc", roc)
-    else:
-        print("⚠️ ROC AUC skipped (single-class y_test)")
+
+    mlflow.log_params({
+        "n_estimators": 200,
+        "learning_rate": 0.05,
+        "max_depth": 3
+    })
 
     os.makedirs("artifacts", exist_ok=True)
     joblib.dump(pipeline, "artifacts/model.pkl")
 
-    mlflow.log_artifact("artifacts/model.pkl", artifact_path="model")
-
-
+    mlflow.sklearn.log_model(
+        pipeline,
+        artifact_path="model",
+        registered_model_name="LoanEligibilityPipeline"
+    )
 
 print(f"Accuracy: {acc}")
