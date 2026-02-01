@@ -2,31 +2,29 @@ import pandas as pd
 import os
 
 def preprocess(raw_path: str, processed_path: str):
-    """
-    Reads raw loan data, cleans it, and saves clean_data.csv
-    """
-
-    # Load raw data
     df = pd.read_csv(raw_path)
 
     # Encode target
     df["Loan_Status"] = df["Loan_Status"].map({"Y": 1, "N": 0})
 
-    # Handle missing values
-    df["Gender"].fillna("Male", inplace=True)
-    df["Married"].fillna("Yes", inplace=True)
-    df["Dependents"].fillna("0", inplace=True)
-    df["Self_Employed"].fillna("No", inplace=True)
-    df["LoanAmount"].fillna(df["LoanAmount"].median(), inplace=True)
-    df["Loan_Amount_Term"].fillna(df["Loan_Amount_Term"].median(), inplace=True)
-    df["Credit_History"].fillna(1.0, inplace=True)
+    # Handle missing values (NO inplace=True)
+    df["Gender"] = df["Gender"].fillna("Male")
+    df["Married"] = df["Married"].fillna("Yes")
+    df["Dependents"] = df["Dependents"].fillna("0")
+    df["Self_Employed"] = df["Self_Employed"].fillna("No")
 
-    # Ensure output directory exists
-    os.makedirs(os.path.dirname(processed_path), exist_ok=True)
+    df["LoanAmount"] = df["LoanAmount"].fillna(df["LoanAmount"].median())
+    df["Loan_Amount_Term"] = df["Loan_Amount_Term"].fillna(
+        df["Loan_Amount_Term"].median()
+    )
+    df["Credit_History"] = df["Credit_History"].fillna(1.0)
 
-    # Save clean data
+    # ✅ Create directory ONLY if path exists
+    output_dir = os.path.dirname(processed_path)
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
+
     df.to_csv(processed_path, index=False)
-
     print(f"✅ Clean data saved to {processed_path}")
 
     return df
