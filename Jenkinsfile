@@ -136,59 +136,72 @@ pipeline {
         ================================= */
    
 
-
-
-
 stage("Prediction Test") {
     steps {
         sh '''
+        set -e
+
         . $VENV_NAME/bin/activate
 
-        # Run FastAPI app in background
-        uvicorn main:app --host 0.0.0.0 --port 7000 &
+        echo "Working directory:"
+        pwd
+        ls -l
+
+        # Start FastAPI in background WITH logs
+        nohup uvicorn main:app \
+            --host 0.0.0.0 \
+            --port 7000 \
+            > uvicorn.log 2>&1 &
+
         API_PID=$!
+        echo "FastAPI PID: $API_PID"
         trap "kill $API_PID 2>/dev/null || true" EXIT
 
-        # Wait for API health endpoint to be ready
+        # Wait for FastAPI
         for i in {1..30}; do
-            curl -sSf http://localhost:7000/health && break
-            echo "Waiting for FastAPI to start..."
+            if curl -s http://localhost:7000/health > /dev/null; then
+                echo "✅ FastAPI is running"
+                break
+            fi
+            echo "Waiting for FastAPI..."
             sleep 1
         done
 
-        # Check if API started
-        curl -sSf http://localhost:7000/health >/dev/null 2>&1 || {
-            echo "❌ FastAPI did not start in time"
-            exit 1
-        }
-
-        # Test prediction endpoint
-        HTTP_STATUS=$(curl -s -o response.json -w "%{http_code}" -X POST http://localhost:7000/predict \
-            -H "Content-Type: application/json" \
-            -d '{
-                "Gender": "Male",
-                "Married": "Yes",
-                "Dependents": "0",
-                "Education": "Graduate",
-                "Self_Employed": "No",
-                "ApplicantIncome": 5000,
-                "CoapplicantIncome": 2000,
-                "LoanAmount": 150,
-                "Loan_Amount_Term": 360,
-                "Credit_History": 1,
-                "Property_Area": "Urban"
-            }')
-
-        if [ "$HTTP_STATUS" -ne 200 ]; then
-            echo "❌ Prediction failed with HTTP status $HTTP_STATUS"
-            cat response.json
+        # Final health check
+        if ! curl -s http://localhost:7000/health; then
+            echo "❌ FastAPI failed to start"
+            echo "===== uvicorn.log ====="
+            cat uvicorn.log
             exit 1
         fi
 
-        echo "✅ API Response: $(cat response.json)"
+        # Prediction test
+        RESPONSE=$(curl -s -X POST http://localhost:7000/predict \
+          -H "Content-Type: application/json" \
+          -d '{
+            "Gender": "Male",
+            "Married": "Yes",
+            "Dependents": "0",
+            "Education": "Graduate",
+            "Self_Employed": "No",
+            "ApplicantIncome": 5000,
+            "CoapplicantIncome": 2000,
+            "LoanAmount": 150,
+            "Loan_Amount_Term": 360,
+            "Credit_History": 1,
+            "Property_Area": "Urban"
+          }')
+
+        echo "API Response: $RESPONSE"
+
+        if [ -z "$RESPONSE" ]; then
+            echo "❌ Empty response from API"
+            exit 1
+        fi
         '''
     }
 }
+
 
 
 
