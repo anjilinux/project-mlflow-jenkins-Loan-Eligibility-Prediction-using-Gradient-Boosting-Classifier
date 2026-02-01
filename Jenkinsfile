@@ -132,47 +132,47 @@ pipeline {
         }
 
 
-stage("FastAPI API Test") {
-    steps {
-        sh '''
-        set -e
-        . $VENV_NAME/bin/activate
+        stage("FastAPI API Test") {
+            steps {
+                sh '''
+                set -e
+                . $VENV_NAME/bin/activate
 
-        # Start FastAPI in background
-        nohup uvicorn main:app --host 0.0.0.0 --port $API_PORT > api.log 2>&1 &
-        API_PID=$!
-        sleep 10
+                # Start FastAPI in background
+                nohup uvicorn main:app --host 0.0.0.0 --port $API_PORT > api.log 2>&1 &
+                API_PID=$!
+                sleep 10
 
-        # Check health endpoint, ignore non-zero exit code
-        curl -sSf http://localhost:$API_PORT/health || true
+                # Check health endpoint, ignore non-zero exit code
+                curl -sSf http://localhost:$API_PORT/health || true
 
-        # Call prediction endpoint
-        RESPONSE=$(curl -s -X POST http://localhost:$API_PORT/predict \
-          -H "Content-Type: application/json" \
-          -d '{
-                "area": 1200,
-                "bhk": 2,
-                "bath": 2,
-                "description": "luxury apartment near metro"
-              }') || true
+                # Call prediction endpoint
+                RESPONSE=$(curl -s -X POST http://localhost:$API_PORT/predict \
+                -H "Content-Type: application/json" \
+                -d '{
+                        "area": 1200,
+                        "bhk": 2,
+                        "bath": 2,
+                        "description": "luxury apartment near metro"
+                    }') || true
 
-        echo "API Response: $RESPONSE"
+                echo "API Response: $RESPONSE"
 
-        # Stop API
-        kill -9 $API_PID || true
-        '''
-    }
-}
-
-
-     stage{
-        steps("schema-test-"){
-            sh '''
-              . $ENV_NAME/bin/activate
-                python schema.py
-            '''
+                # Stop API
+                kill -9 $API_PID || true
+                '''
+            }
         }
-     }
+
+
+        stage{
+            steps("schema-test-"){
+                sh '''
+                . $ENV_NAME/bin/activate
+                    python schema.py
+                '''
+            }
+        }
 
 
 
@@ -180,53 +180,53 @@ stage("FastAPI API Test") {
 
         /* ================================
            Stage 11: Docker Build & Test
-        ================================= */
-stage("Docker Build & Run") {
-    steps {
-        sh '''
-        set -e
+                ================================= */
+        stage("Docker Build & Run") {
+            steps {
+                sh '''
+                set -e
 
-        # Build Docker image
-        docker build -t real-estate-api1 .
+                # Build Docker image
+                docker build -t real-estate-api1 .
 
-        # Remove old container if exists
-        docker rm -f real-estate-api1 || true
+                # Remove old container if exists
+                docker rm -f real-estate-api1 || true
 
-        # Pick a random free host port between 8000-8999
-        HOST_PORT=$(shuf -i 8000-8999 -n 1)
-        echo "🚀 Running API on host port $HOST_PORT"
+                # Pick a random free host port between 8000-8999
+                HOST_PORT=$(shuf -i 8000-8999 -n 1)
+                echo "🚀 Running API on host port $HOST_PORT"
 
-        # Run container mapping random host port to container port 8005
-        CONTAINER_ID=$(docker run -d -p $HOST_PORT:8005 --name real-estate-api1 real-estate-api1)
+                # Run container mapping random host port to container port 8005
+                CONTAINER_ID=$(docker run -d -p $HOST_PORT:8005 --name real-estate-api1 real-estate-api1)
 
-        # Wait for the API to start
-        sleep 10
+                # Wait for the API to start
+                sleep 10
 
-        # Health check
-        curl -sf http://localhost:$HOST_PORT/health || {
-            echo "❌ API health check failed"
-            docker logs $CONTAINER_ID
-            exit 1
+                # Health check
+                curl -sf http://localhost:$HOST_PORT/health || {
+                    echo "❌ API health check failed"
+                    docker logs $CONTAINER_ID
+                    exit 1
+                }
+
+                # Optionally, test prediction endpoint
+                RESPONSE=$(curl -s -X POST http://localhost:$HOST_PORT/predict \
+                -H "Content-Type: application/json" \
+                -d '{
+                        "area": 1200,
+                        "bhk": 2,
+                        "bath": 2,
+                        "description": "luxury apartment near metro"
+                    }') || true
+
+                echo "API Response: $RESPONSE"
+
+                # Stop and remove container after test
+                docker stop $CONTAINER_ID
+                docker rm $CONTAINER_ID
+                '''
+            }
         }
-
-        # Optionally, test prediction endpoint
-        RESPONSE=$(curl -s -X POST http://localhost:$HOST_PORT/predict \
-          -H "Content-Type: application/json" \
-          -d '{
-                "area": 1200,
-                "bhk": 2,
-                "bath": 2,
-                "description": "luxury apartment near metro"
-              }') || true
-
-        echo "API Response: $RESPONSE"
-
-        # Stop and remove container after test
-        docker stop $CONTAINER_ID
-        docker rm $CONTAINER_ID
-        '''
-    }
-}
 
     //  #        docker stop $CONTAINER_ID
     //    # docker rm $CONTAINER_ID
