@@ -5,7 +5,6 @@ from sklearn.preprocessing import OneHotEncoder, StandardScaler
 from sklearn.compose import ColumnTransformer
 from collections import Counter
 
-
 def preprocess_data(raw_path: str, processed_path: str):
     # Load data
     df = pd.read_csv(raw_path)
@@ -34,23 +33,30 @@ def preprocess_data(raw_path: str, processed_path: str):
         ]
     )
 
-    # ✅ SAFE stratified split
+    # ✅ Safe stratified split
     class_counts = Counter(y)
     use_stratify = y if min(class_counts.values()) >= 2 else None
+
+    # Ensure test_size leaves at least 1 row in test set
+    test_size = 0.2
+    if len(y) * test_size < 1:
+        test_size = 1 / len(y)
 
     X_train, X_test, y_train, y_test = train_test_split(
         X,
         y,
-        test_size=0.2,
+        test_size=test_size,
         random_state=42,
         stratify=use_stratify
     )
 
-    # ✅ SAFE directory creation
+    # ✅ Safe directory creation
     output_dir = os.path.dirname(processed_path)
     if output_dir:
         os.makedirs(output_dir, exist_ok=True)
 
+    # Save processed data
     df.to_csv(processed_path, index=False)
+    print(f"✅ Clean data saved to {processed_path}")
 
     return X_train, X_test, y_train, y_test, preprocessor
