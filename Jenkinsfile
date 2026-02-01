@@ -150,14 +150,22 @@ stage("Model Testing") {
                 curl -sSf http://localhost:$API_PORT/health || true
 
                 # Call prediction endpoint
-                RESPONSE=$(curl -s -X POST http://localhost:$API_PORT/predict \
-                -H "Content-Type: application/json" \
-                -d '{
-                        "area": 1200,
-                        "bhk": 2,
-                        "bath": 2,
-                        "description": "luxury apartment near metro"
-                    }') || true
+curl -s -X POST http://localhost:7000/predict \
+-H "Content-Type: application/json" \
+-d '{
+    "Gender": "Male",
+    "Married": "Yes",
+    "Dependents": "0",
+    "Education": "Graduate",
+    "Self_Employed": "No",
+    "ApplicantIncome": 5000,
+    "CoapplicantIncome": 2000,
+    "LoanAmount": 150,
+    "Loan_Amount_Term": 360,
+    "Credit_History": 1,
+    "Property_Area": "Urban"
+}'
+
 
                 echo "API Response: $RESPONSE"
 
@@ -184,52 +192,68 @@ stage("Model Testing") {
         /* ================================
            Stage 11: Docker Build & Test
                 ================================= */
-        stage("Docker Build & Run") {
-            steps {
-                sh '''
-                set -e
+   
+       /* ================================
+   Stage 11: Docker Build & Test
+================================= */
+stage("Docker Build & Run") {
+    steps {
+        sh '''
+        set -e
 
-                # Build Docker image
-                docker build -t real-estate-api1 .
+        # Build Docker image
+        docker build -t loan-eligibility .
 
-                # Remove old container if exists
-                docker rm -f real-estate-api1 || true
+        # Remove old container if exists
+        docker rm -f loan-eligibility || true
 
-                # Pick a random free host port between 8000-8999
-                HOST_PORT=$(shuf -i 8000-8999 -n 1)
-                echo "🚀 Running API on host port $HOST_PORT"
+        # Pick a random free host port between 8000-8999
+        HOST_PORT=$(shuf -i 8000-8999 -n 1)
+        echo "🚀 Running API on host port $HOST_PORT"
 
-                # Run container mapping random host port to container port 8005
-                CONTAINER_ID=$(docker run -d -p $HOST_PORT:8005 --name real-estate-api1 real-estate-api1)
+        # Run container mapping random host port to container port 8005
+        CONTAINER_ID=$(docker run -d -p $HOST_PORT:8005 --name loan-eligibility loan-eligibility)
 
-                # Wait for the API to start
-                sleep 10
+        # Wait for the API to start
+        sleep 10
 
-                # Health check
-                curl -sf http://localhost:$HOST_PORT/health || {
-                    echo "❌ API health check failed"
-                    docker logs $CONTAINER_ID
-                    exit 1
-                }
-
-                # Optionally, test prediction endpoint
-                RESPONSE=$(curl -s -X POST http://localhost:$HOST_PORT/predict \
-                -H "Content-Type: application/json" \
-                -d '{
-                        "area": 1200,
-                        "bhk": 2,
-                        "bath": 2,
-                        "description": "luxury apartment near metro"
-                    }') || true
-
-                echo "API Response: $RESPONSE"
-
-                # Stop and remove container after test
-                docker stop $CONTAINER_ID
-                docker rm $CONTAINER_ID
-                '''
-            }
+        # Health check
+        curl -sf http://localhost:$HOST_PORT/health || {
+            echo "❌ API health check failed"
+            docker logs $CONTAINER_ID
+            exit 1
         }
+
+        # Test prediction endpoint with all required fields
+        RESPONSE=$(curl -s -X POST http://localhost:$HOST_PORT/predict \
+        -H "Content-Type: application/json" \
+        -d '{
+                "Gender": "Male",
+                "Married": "Yes",
+                "Dependents": "0",
+                "Education": "Graduate",
+                "Self_Employed": "No",
+                "ApplicantIncome": 5000,
+                "CoapplicantIncome": 2000,
+                "LoanAmount": 150,
+                "Loan_Amount_Term": 360,
+                "Credit_History": 1,
+                "Property_Area": "Urban"
+            }') || true
+
+        echo "API Response: $RESPONSE"
+
+        # Stop and remove container after test
+        docker stop $CONTAINER_ID
+        docker rm $CONTAINER_ID
+        '''
+    }
+}
+
+
+
+
+
 
          //  #        docker stop $CONTAINER_ID
         //    # docker rm $CONTAINER_ID
