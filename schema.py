@@ -1,5 +1,4 @@
-# schema.py
-from pydantic import BaseModel, Field, conint, confloat
+from pydantic import BaseModel, Field, confloat
 
 class LoanInput(BaseModel):
     Gender: str = Field(..., description="Gender of the applicant, e.g., Male/Female")
