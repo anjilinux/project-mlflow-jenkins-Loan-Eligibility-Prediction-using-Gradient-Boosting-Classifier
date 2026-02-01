@@ -165,8 +165,8 @@ pipeline {
         }
 
 
-        stage{
-            steps("schema-test-"){
+        stage("schema-test-"){
+            steps{
                 sh '''
                 . $ENV_NAME/bin/activate
                     python schema.py
@@ -228,8 +228,8 @@ pipeline {
             }
         }
 
-    //  #        docker stop $CONTAINER_ID
-    //    # docker rm $CONTAINER_ID
+         //  #        docker stop $CONTAINER_ID
+        //    # docker rm $CONTAINER_ID
 
         /* ================================
            Stage 12: Archive Artifacts
@@ -240,6 +240,7 @@ pipeline {
             }
         }
     }
+
 
     post {
         success {
