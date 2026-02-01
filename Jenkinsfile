@@ -98,7 +98,7 @@ pipeline {
       /* ================================
            Stage 88: Pytest
         ================================= */
-        stage("Model Testing") {
+        stage("test_data") {
             steps {
                 sh '''
                 . $VENV_NAME/bin/activate
