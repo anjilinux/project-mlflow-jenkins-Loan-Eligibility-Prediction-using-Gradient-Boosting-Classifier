@@ -1,44 +1,43 @@
 import pandas as pd
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-import joblib
 import os
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.compose import ColumnTransformer
 
-def preprocess_data(raw_path, processed_path):
+
+def preprocess_data(raw_path: str, processed_path: str):
+    # Load data
     df = pd.read_csv(raw_path)
 
-    df['Loan_Status'] = df['Loan_Status'].map({'Y': 1, 'N': 0})
+    # Encode target if still string
+    if df["Loan_Status"].dtype == "object":
+        df["Loan_Status"] = df["Loan_Status"].map({"Y": 1, "N": 0})
 
-    df.fillna({
-        'Gender': 'Male',
-        'Married': 'Yes',
-        'Dependents': '0',
-        'Self_Employed': 'No',
-        'LoanAmount': df['LoanAmount'].median(),
-        'Loan_Amount_Term': df['Loan_Amount_Term'].median(),
-        'Credit_History': 1.0
-    }, inplace=True)
+    X = df.drop("Loan_Status", axis=1)
+    y = df["Loan_Status"]
 
-    os.makedirs(os.path.dirname(processed_path), exist_ok=True)
-    df.to_csv(processed_path, index=False)
+    categorical_cols = [
+        "Gender", "Married", "Dependents",
+        "Education", "Self_Employed", "Property_Area"
+    ]
 
-    X = df.drop('Loan_Status', axis=1)
-    y = df['Loan_Status']
+    numerical_cols = [
+        "ApplicantIncome", "CoapplicantIncome",
+        "LoanAmount", "Loan_Amount_Term", "Credit_History"
+    ]
 
-    cat_cols = X.select_dtypes(include='object').columns
-    num_cols = X.select_dtypes(exclude='object').columns
-
-    preprocessor = ColumnTransformer([
-        ('num', StandardScaler(), num_cols),
-        ('cat', OneHotEncoder(handle_unknown='ignore'), cat_cols)
-    ])
+    preprocessor = ColumnTransformer(
+        transformers=[
+            ("num", StandardScaler(), numerical_cols),
+            ("cat", OneHotEncoder(handle_unknown="ignore"), categorical_cols)
+        ]
+    )
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42, stratify=y
     )
 
-    joblib.dump(preprocessor, "artifacts/preprocessor.pkl")
-
-    return X_train, X_test, y_train, y_test, preprocessor
+    # ✅ SAFE directory creation
+    output_dir = os.path.dirname(processed_path)
+    if output_dir:
+        os.makedirs(output_dir, exist_ok=True)
