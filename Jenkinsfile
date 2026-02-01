@@ -192,7 +192,7 @@ curl -s -X POST http://localhost:7000/predict \
 /* ================================
    Stage 11: Docker Build & Run
 ================================= */
-stage("Docker Build & Run") {
+stage("Docker Build & Run-1") {
     steps {
         sh '''
         set -e
@@ -220,7 +220,7 @@ stage("Docker Build & Run") {
 /* ================================
    Stage 12: FastAPI API Test
 ================================= */
-stage("FastAPI API Test") {
+stage("FastAPI API Test-1") {
     steps {
         sh '''
         set -e
