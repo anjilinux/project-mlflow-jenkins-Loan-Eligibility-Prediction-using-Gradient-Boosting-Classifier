@@ -17,7 +17,7 @@ app.add_middleware(
 
 # ✅ Load trained model and preprocessor
 model = joblib.load("artifacts/model.pkl")
-preprocessor = joblib.load("artifacts/preprocessor.pkl")  # must match your training preprocessing
+preprocessor = joblib.load("preprocessor.pkl")  # must match your training preprocessing
 
 # ✅ Health check endpoint
 @app.get("/health")
