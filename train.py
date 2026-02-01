@@ -32,15 +32,22 @@ with mlflow.start_run():
 
     preds = pipeline.predict(X_test)
     acc = accuracy_score(y_test, preds)
-    roc = roc_auc_score(y_test, preds)
 
     mlflow.log_param("model", "GradientBoostingClassifier")
     mlflow.log_metric("accuracy", acc)
-    mlflow.log_metric("roc_auc", roc)
+
+    # ✅ Safe ROC AUC logging
+    if y_test.nunique() > 1:
+        roc = roc_auc_score(y_test, preds)
+        mlflow.log_metric("roc_auc", roc)
+    else:
+        print("⚠️ ROC AUC skipped (single-class y_test)")
 
     os.makedirs("artifacts", exist_ok=True)
     joblib.dump(pipeline, "artifacts/model.pkl")
 
-    mlflow.sklearn.log_model(pipeline, "model")
+    mlflow.log_artifact("artifacts/model.pkl", artifact_path="model")
+
+
 
 print(f"Accuracy: {acc}")
