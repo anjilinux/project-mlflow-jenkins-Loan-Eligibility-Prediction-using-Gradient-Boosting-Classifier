@@ -1,0 +1,519 @@
+Started by user anjireddy-jenkins
+
+Obtained Jenkinsfile from git https://github.com/anjilinux/project-mlflow-jenkins-Loan-Eligibility-Prediction-using-Gradient-Boosting-Classifier.git
+[Pipeline] Start of Pipeline
+[Pipeline] node
+Running on Jenkins
+ in /var/lib/jenkins/workspace/Loan-Eligibility
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Declarative: Checkout SCM)
+[Pipeline] checkout
+Selected Git installation does not exist. Using Default
+The recommended git tool is: NONE
+No credentials specified
+ > git rev-parse --resolve-git-dir /var/lib/jenkins/workspace/Loan-Eligibility/.git # timeout=10
+Fetching changes from the remote Git repository
+ > git config remote.origin.url https://github.com/anjilinux/project-mlflow-jenkins-Loan-Eligibility-Prediction-using-Gradient-Boosting-Classifier.git # timeout=10
+Fetching upstream changes from https://github.com/anjilinux/project-mlflow-jenkins-Loan-Eligibility-Prediction-using-Gradient-Boosting-Classifier.git
+ > git --version # timeout=10
+ > git --version # 'git version 2.43.0'
+ > git fetch --tags --force --progress -- https://github.com/anjilinux/project-mlflow-jenkins-Loan-Eligibility-Prediction-using-Gradient-Boosting-Classifier.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git rev-parse refs/remotes/origin/master^{commit} # timeout=10
+Checking out Revision c3ed0f1f1ebb6114318a542bcf281335ec6b9bb3 (refs/remotes/origin/master)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f c3ed0f1f1ebb6114318a542bcf281335ec6b9bb3 # timeout=10
+Commit message: "loan-eb"
+ > git rev-list --no-walk a85c4a75008829c05a705ef52e4d36e64c0d65d5 # timeout=10
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] withEnv
+[Pipeline] {
+[Pipeline] timeout
+Timeout set to expire in 1 hr 0 min
+[Pipeline] {
+[Pipeline] stage
+[Pipeline] { (Checkout Code)
+[Pipeline] git
+Selected Git installation does not exist. Using Default
+The recommended git tool is: NONE
+No credentials specified
+ > git rev-parse --resolve-git-dir /var/lib/jenkins/workspace/Loan-Eligibility/.git # timeout=10
+Fetching changes from the remote Git repository
+ > git config remote.origin.url https://github.com/anjilinux/project-mlflow-jenkins-Loan-Eligibility-Prediction-using-Gradient-Boosting-Classifier.git # timeout=10
+Fetching upstream changes from https://github.com/anjilinux/project-mlflow-jenkins-Loan-Eligibility-Prediction-using-Gradient-Boosting-Classifier.git
+ > git --version # timeout=10
+ > git --version # 'git version 2.43.0'
+ > git fetch --tags --force --progress -- https://github.com/anjilinux/project-mlflow-jenkins-Loan-Eligibility-Prediction-using-Gradient-Boosting-Classifier.git +refs/heads/*:refs/remotes/origin/* # timeout=10
+ > git rev-parse refs/remotes/origin/master^{commit} # timeout=10
+Checking out Revision c3ed0f1f1ebb6114318a542bcf281335ec6b9bb3 (refs/remotes/origin/master)
+ > git config core.sparsecheckout # timeout=10
+ > git checkout -f c3ed0f1f1ebb6114318a542bcf281335ec6b9bb3 # timeout=10
+ > git branch -a -v --no-abbrev # timeout=10
+ > git branch -D master # timeout=10
+ > git checkout -b master c3ed0f1f1ebb6114318a542bcf281335ec6b9bb3 # timeout=10
+Commit message: "loan-eb"
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Setup Virtual Environment)
+[Pipeline] sh
++ python3 -m venv venv
++ . venv/bin/activate
++ deactivate nondestructive
++ [ -n  ]
++ [ -n  ]
++ hash -r
++ [ -n  ]
++ unset VIRTUAL_ENV
++ unset VIRTUAL_ENV_PROMPT
++ [ ! nondestructive = nondestructive ]
++ [  = cygwin ]
++ [  = msys ]
++ export VIRTUAL_ENV=/var/lib/jenkins/workspace/Loan-Eligibility/venv
++ _OLD_VIRTUAL_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin
++ PATH=/var/lib/jenkins/workspace/Loan-Eligibility/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin
++ export PATH
++ [ -n  ]
++ [ -z  ]
++ _OLD_VIRTUAL_PS1=$ 
++ PS1=(venv) $ 
++ export PS1
++ VIRTUAL_ENV_PROMPT=(venv) 
++ export VIRTUAL_ENV_PROMPT
++ hash -r
++ pip install -r requirements.txt
+Requirement already satisfied: pandas in ./venv/lib/python3.12/site-packages (from -r requirements.txt (line 1)) (2.3.3)
+satisfied: wcwidth in ./venv/lib/python3.12/site-packages (from prettytable>=3.9->skops<1->mlflow->-r requirements.txt (line 4)) (0.5.3)
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Data Ingestion)
+[Pipeline] sh
++ . venv/bin/activate
++ deactivate nondestructive
++ [ -n  ]
++ [ -n  ]
++ hash -r
++ [ -n  ]
++ unset VIRTUAL_ENV
++ unset VIRTUAL_ENV_PROMPT
++ [ ! nondestructive = nondestructive ]
++ [  = cygwin ]
++ [  = msys ]
++ export VIRTUAL_ENV=/var/lib/jenkins/workspace/Loan-Eligibility/venv
++ _OLD_VIRTUAL_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin
++ PATH=/var/lib/jenkins/workspace/Loan-Eligibility/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin
++ export PATH
++ [ -n  ]
++ [ -z  ]
++ _OLD_VIRTUAL_PS1=$ 
++ PS1=(venv) $ 
++ export PS1
++ VIRTUAL_ENV_PROMPT=(venv) 
++ export VIRTUAL_ENV_PROMPT
++ hash -r
++ python data_ingestion.py
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (EDA & Feature Engineering)
+[Pipeline] sh
++ . venv/bin/activate
++ deactivate nondestructive
++ [ -n  ]
++ [ -n  ]
++ hash -r
++ [ -n  ]
++ unset VIRTUAL_ENV
++ unset VIRTUAL_ENV_PROMPT
++ [ ! nondestructive = nondestructive ]
++ [  = cygwin ]
++ [  = msys ]
++ export VIRTUAL_ENV=/var/lib/jenkins/workspace/Loan-Eligibility/venv
++ _OLD_VIRTUAL_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin
++ PATH=/var/lib/jenkins/workspace/Loan-Eligibility/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin
++ export PATH
++ [ -n  ]
++ [ -z  ]
++ _OLD_VIRTUAL_PS1=$ 
++ PS1=(venv) $ 
++ export PS1
++ VIRTUAL_ENV_PROMPT=(venv) 
++ export VIRTUAL_ENV_PROMPT
++ hash -r
++ python feature_engineering.py
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Data Preprocessing)
+[Pipeline] sh
++ . venv/bin/activate
++ deactivate nondestructive
++ [ -n  ]
++ [ -n  ]
++ hash -r
++ [ -n  ]
++ unset VIRTUAL_ENV
++ unset VIRTUAL_ENV_PROMPT
++ [ ! nondestructive = nondestructive ]
++ [  = cygwin ]
++ [  = msys ]
++ export VIRTUAL_ENV=/var/lib/jenkins/workspace/Loan-Eligibility/venv
++ _OLD_VIRTUAL_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin
++ PATH=/var/lib/jenkins/workspace/Loan-Eligibility/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin
++ export PATH
++ [ -n  ]
++ [ -z  ]
++ _OLD_VIRTUAL_PS1=$ 
++ PS1=(venv) $ 
++ export PS1
++ VIRTUAL_ENV_PROMPT=(venv) 
++ export VIRTUAL_ENV_PROMPT
++ hash -r
++ python preprocess.py
+✅ Clean data saved to clean_data.csv
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Model Training)
+[Pipeline] sh
++ . venv/bin/activate
++ deactivate nondestructive
++ [ -n  ]
++ [ -n  ]
++ hash -r
++ [ -n  ]
++ unset VIRTUAL_ENV
++ unset VIRTUAL_ENV_PROMPT
++ [ ! nondestructive = nondestructive ]
++ [  = cygwin ]
++ [  = msys ]
++ export VIRTUAL_ENV=/var/lib/jenkins/workspace/Loan-Eligibility/venv
++ _OLD_VIRTUAL_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin
++ PATH=/var/lib/jenkins/workspace/Loan-Eligibility/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin
++ export PATH
++ [ -n  ]
++ [ -z  ]
++ _OLD_VIRTUAL_PS1=$ 
++ PS1=(venv) $ 
++ export PS1
++ VIRTUAL_ENV_PROMPT=(venv) 
++ export VIRTUAL_ENV_PROMPT
++ hash -r
++ python train.py
+2026/02/01 23:43:20 WARNING mlflow.models.model: `artifact_path` is deprecated. Please use `name` instead.
+/var/lib/jenkins/workspace/Loan-Eligibility/venv/lib/python3.12/site-packages/mlflow/models/model.py:1209: FutureWarning: Saving scikit-learn models in the pickle or cloudpickle format requires exercising caution because these formats rely on Python's object serialization mechanism, which can execute arbitrary code during deserialization.The recommended safe alternative is the 'skops' format.
+  flavor.save_model(path=local_path, mlflow_model=mlflow_model, **kwargs)
+Registered model 'LoanEligibilityPipeline' already exists. Creating a new version of this model...
+2026/02/01 23:43:23 INFO mlflow.store.model_registry.abstract_store: Waiting up to 300 seconds for model version to finish creation. Model name: LoanEligibilityPipeline, version 16
+Created version '16' of model 'LoanEligibilityPipeline'.
+✅ Clean data saved to clean_data.csv
+🏃 View run marvelous-kite-596 at: http://localhost:5555/#/experiments/68/runs/7cf9427525dd4bf8b18ef3dd0255b2ef
+🧪 View experiment at: http://localhost:5555/#/experiments/68
+Accuracy: 0.0
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Model Evaluation)
+[Pipeline] sh
++ . venv/bin/activate
++ deactivate nondestructive
++ [ -n  ]
++ [ -n  ]
++ hash -r
++ [ -n  ]
++ unset VIRTUAL_ENV
++ unset VIRTUAL_ENV_PROMPT
++ [ ! nondestructive = nondestructive ]
++ [  = cygwin ]
++ [  = msys ]
++ export VIRTUAL_ENV=/var/lib/jenkins/workspace/Loan-Eligibility/venv
++ _OLD_VIRTUAL_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin
++ PATH=/var/lib/jenkins/workspace/Loan-Eligibility/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin
++ export PATH
++ [ -n  ]
++ [ -z  ]
++ _OLD_VIRTUAL_PS1=$ 
++ PS1=(venv) $ 
++ export PS1
++ VIRTUAL_ENV_PROMPT=(venv) 
++ export VIRTUAL_ENV_PROMPT
++ hash -r
++ python evaluate.py
+/var/lib/jenkins/workspace/Loan-Eligibility/venv/lib/python3.12/site-packages/sklearn/metrics/_classification.py:1833: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, f"{metric.capitalize()} is", result.shape[0])
+/var/lib/jenkins/workspace/Loan-Eligibility/venv/lib/python3.12/site-packages/sklearn/metrics/_classification.py:1833: UndefinedMetricWarning: Recall is ill-defined and being set to 0.0 in labels with no true samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, f"{metric.capitalize()} is", result.shape[0])
+/var/lib/jenkins/workspace/Loan-Eligibility/venv/lib/python3.12/site-packages/sklearn/metrics/_classification.py:1833: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, f"{metric.capitalize()} is", result.shape[0])
+/var/lib/jenkins/workspace/Loan-Eligibility/venv/lib/python3.12/site-packages/sklearn/metrics/_classification.py:1833: UndefinedMetricWarning: Recall is ill-defined and being set to 0.0 in labels with no true samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, f"{metric.capitalize()} is", result.shape[0])
+/var/lib/jenkins/workspace/Loan-Eligibility/venv/lib/python3.12/site-packages/sklearn/metrics/_classification.py:1833: UndefinedMetricWarning: Precision is ill-defined and being set to 0.0 in labels with no predicted samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, f"{metric.capitalize()} is", result.shape[0])
+/var/lib/jenkins/workspace/Loan-Eligibility/venv/lib/python3.12/site-packages/sklearn/metrics/_classification.py:1833: UndefinedMetricWarning: Recall is ill-defined and being set to 0.0 in labels with no true samples. Use `zero_division` parameter to control this behavior.
+  _warn_prf(average, modifier, f"{metric.capitalize()} is", result.shape[0])
+✅ Clean data saved to clean_data.csv
+[[0 0]
+ [1 0]]
+              precision    recall  f1-score   support
+
+           0       0.00      0.00      0.00       0.0
+           1       0.00      0.00      0.00       1.0
+
+    accuracy                           0.00       1.0
+   macro avg       0.00      0.00      0.00       1.0
+weighted avg       0.00      0.00      0.00       1.0
+
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Run Pytests)
+[Pipeline] sh
++ . venv/bin/activate
++ deactivate nondestructive
++ [ -n  ]
++ [ -n  ]
++ hash -r
++ [ -n  ]
++ unset VIRTUAL_ENV
++ unset VIRTUAL_ENV_PROMPT
++ [ ! nondestructive = nondestructive ]
++ [  = cygwin ]
++ [  = msys ]
++ export VIRTUAL_ENV=/var/lib/jenkins/workspace/Loan-Eligibility/venv
++ _OLD_VIRTUAL_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin
++ PATH=/var/lib/jenkins/workspace/Loan-Eligibility/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin
++ export PATH
++ [ -n  ]
++ [ -z  ]
++ _OLD_VIRTUAL_PS1=$ 
++ PS1=(venv) $ 
++ export PS1
++ VIRTUAL_ENV_PROMPT=(venv) 
++ export VIRTUAL_ENV_PROMPT
++ hash -r
++ pwd
++ export PYTHONPATH=/var/lib/jenkins/workspace/Loan-Eligibility
++ pytest test_data.py
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0
+rootdir: /var/lib/jenkins/workspace/Loan-Eligibility
+configfile: pytest.ini
+plugins: anyio-4.12.1
+collected 1 item
+
+test_data.py .                                                           [100%]
+
+============================== 1 passed in 0.36s ===============================
++ pytest test_model.py
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0
+rootdir: /var/lib/jenkins/workspace/Loan-Eligibility
+configfile: pytest.ini
+plugins: anyio-4.12.1
+collected 1 item
+
+test_model.py .                                                          [100%]
+
+============================== 1 passed in 1.24s ===============================
++ pytest test_schema.py
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-9.0.2, pluggy-1.6.0
+rootdir: /var/lib/jenkins/workspace/Loan-Eligibility
+configfile: pytest.ini
+plugins: anyio-4.12.1
+collected 1 item
+
+test_schema.py .                                                         [100%]
+
+============================== 1 passed in 0.08s ===============================
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (FastAPI Prediction Test)
+[Pipeline] sh
++ set -e
++ . venv/bin/activate
++ deactivate nondestructive
++ [ -n  ]
++ [ -n  ]
++ hash -r
++ [ -n  ]
++ unset VIRTUAL_ENV
++ unset VIRTUAL_ENV_PROMPT
++ [ ! nondestructive = nondestructive ]
++ [  = cygwin ]
++ [  = msys ]
++ export VIRTUAL_ENV=/var/lib/jenkins/workspace/Loan-Eligibility/venv
++ _OLD_VIRTUAL_PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin
++ PATH=/var/lib/jenkins/workspace/Loan-Eligibility/venv/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/snap/bin
++ export PATH
++ [ -n  ]
++ [ -z  ]
++ _OLD_VIRTUAL_PS1=$ 
++ PS1=(venv) $ 
++ export PS1
++ VIRTUAL_ENV_PROMPT=(venv) 
++ export VIRTUAL_ENV_PROMPT
++ hash -r
++ pwd
++ export PYTHONPATH=/var/lib/jenkins/workspace/Loan-Eligibility
++ echo Starting FastAPI...
+Starting FastAPI...
++ API_PID=1238144
++ echo FastAPI PID: 1238144
+FastAPI PID: 1238144
++ trap kill 1238144 2>/dev/null || true EXIT
++ nohup uvicorn main:app --host 0.0.0.0 --port 8005
++ curl -s http://localhost:8005/health
++ grep -q ok
++ echo Waiting for FastAPI... ({1..30}/30)
+Waiting for FastAPI... ({1..30}/30)
++ sleep 1
++ curl -s http://localhost:8005/health
++ grep -q ok
++ curl -s -X POST http://localhost:8005/predict -H Content-Type: application/json -d {
+                        "Gender": "Male",
+                        "Married": "Yes",
+                        "Dependents": "0",
+                        "Education": "Graduate",
+                        "Self_Employed": "No",
+                        "ApplicantIncome": 5000,
+                        "CoapplicantIncome": 2000,
+                        "LoanAmount": 150,
+                        "Loan_Amount_Term": 360,
+                        "Credit_History": 1,
+                        "Property_Area": "Urban"
+                    }
++ RESPONSE={"loan_status":"Rejected"}
++ echo API Response: {"loan_status":"Rejected"}
+API Response: {"loan_status":"Rejected"}
++ [ -z {"loan_status":"Rejected"} ]
++ kill 1238144
++ kill 1238144
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Docker Build & Run)
+[Pipeline] sh
++ set -e
++ docker build -t loan-eligibility .
+#0 building with "default" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 308B done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/python:3.12-slim
+#2 DONE 5.8s
+
+#3 [internal] load .dockerignore
+#3 transferring context: 2B done
+#3 DONE 0.0s
+
+#4 [1/7] FROM docker.io/library/python:3.12-slim@sha256:5e2dbd4bbdd9c0e67412aea9463906f74a22c60f89eb7b5bbb7d45b66a2b68a6
+#4 DONE 0.0s
+
+#5 [internal] load build context
+#5 transferring context: 104.75kB done
+#5 DONE 0.0s
+
+#6 [2/7] WORKDIR /app
+#6 CACHED
+
+#7 [4/7] RUN pip install --no-cache-dir -r requirements.txt
+#7 CACHED
+
+#8 [6/7] COPY schema.py .
+#8 CACHED
+
+#9 [3/7] COPY requirements.txt .
+#9 CACHED
+
+#10 [5/7] COPY main.py .
+#10 CACHED
+
+#11 [7/7] COPY artifacts/ artifacts/
+#11 CACHED
+
+#12 exporting to image
+#12 exporting layers done
+#12 writing image sha256:adde349b0078780551367016d9def08f5dd396d87ab818c3ef035cf728db78a2 done
+#12 naming to docker.io/library/loan-eligibility done
+#12 DONE 0.0s
++ docker rm -f loan-eligibility
+Error response from daemon: No such container: loan-eligibility
++ shuf -i 8000-8999 -n 1
++ HOST_PORT=8849
++ echo 🚀 Running API on host port 8849
+🚀 Running API on host port 8849
++ docker run -d -p 8849:8005 --name loan-eligibility loan-eligibility
++ CONTAINER_ID=7b4b2a7be5337c5d9bc8db7c07f6db3feb6fdd4d148e3532b289277fe3bdd93d
++ echo 8849
++ echo 7b4b2a7be5337c5d9bc8db7c07f6db3feb6fdd4d148e3532b289277fe3bdd93d
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (FastAPI Docker Test)
+[Pipeline] sh
++ set -e
++ cat .docker_host_port
++ HOST_PORT=8849
++ cat .docker_container_id
++ CONTAINER_ID=7b4b2a7be5337c5d9bc8db7c07f6db3feb6fdd4d148e3532b289277fe3bdd93d
++ echo Waiting for Docker FastAPI...
+Waiting for Docker FastAPI...
++ curl -sSf http://localhost:8849/health
+curl: (56) Recv failure: Connection reset by peer
++ echo ⏳ Waiting... ({1..30}/30)
+⏳ Waiting... ({1..30}/30)
++ sleep 1
++ curl -s -X POST http://localhost:8849/predict -H Content-Type: application/json -d {
+                        "Gender": "Male",
+                        "Married": "Yes",
+                        "Dependents": "0",
+                        "Education": "Graduate",
+                        "Self_Employed": "No",
+                        "ApplicantIncome": 5000,
+                        "CoapplicantIncome": 2000,
+                        "LoanAmount": 150,
+                        "Loan_Amount_Term": 360,
+                        "Credit_History": 1,
+                        "Property_Area": "Urban"
+                    }
++ RESPONSE={"loan_status":"Rejected"}
++ echo Docker API Response: {"loan_status":"Rejected"}
+Docker API Response: {"loan_status":"Rejected"}
++ docker stop 7b4b2a7be5337c5d9bc8db7c07f6db3feb6fdd4d148e3532b289277fe3bdd93d
+7b4b2a7be5337c5d9bc8db7c07f6db3feb6fdd4d148e3532b289277fe3bdd93d
++ docker rm 7b4b2a7be5337c5d9bc8db7c07f6db3feb6fdd4d148e3532b289277fe3bdd93d
+7b4b2a7be5337c5d9bc8db7c07f6db3feb6fdd4d148e3532b289277fe3bdd93d
++ rm -f .docker_host_port .docker_container_id
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Archive Artifacts)
+[Pipeline] archiveArtifacts
+Archiving artifacts
+Recording fingerprints
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] stage
+[Pipeline] { (Declarative: Post Actions)
+[Pipeline] echo
+✅ Loan Eligibility MLOps Pipeline Completed Successfully
+[Pipeline] }
+[Pipeline] // stage
+[Pipeline] }
+[Pipeline] // timeout
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // withEnv
+[Pipeline] }
+[Pipeline] // node
+[Pipeline] End of Pipeline
+Finished: SUCCESS
